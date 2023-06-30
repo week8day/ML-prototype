@@ -2,8 +2,11 @@ import pandas as pd
 import streamlit as st
 from sklearn.preprocessing import StandardScaler
 from PIL import Image
-from pickle import dump, load
+from pickle import load
 
+
+IMAGE_PATH = 'data/images/'
+MODEL_PATH = 'data/model/'
 
 # age gpoup labels
 age_group = {
@@ -20,38 +23,48 @@ def process_main_page():
 
 
 def show_main_page():
-    logo_image = Image.open('data/images/logo.png')
+    logo_image = Image.open(IMAGE_PATH + 'logo.png')
+    icon_image = Image.open(IMAGE_PATH + 'icon.png')
 
     st.set_page_config(
         layout="wide",
         initial_sidebar_state="auto",
         page_title="Credit score",
-        page_icon=logo_image,
+        page_icon=icon_image,
 
     )
 
-    st.image(logo_image)
+    col1, col2 = st.columns((1, 6))
+    col1.image(logo_image, width=120)
+    col2.title("Кредитный скоринг")
 
-    st.write(
-        """
-        # Кредитный скоринг
-        прогнозирование просрочки возврата кредита
-        """
-    )
-
+    st.text("прогнозирование просрочки платежей по кредитам")
 
 def write_user_data(df):
     st.write("## Данные клиента")
     st.write(df)
 
 
-def write_prediction(prediction, prediction_proba):
-    st.write("## Скоринг")
-    st.write(prediction)
+def write_prediction(prediction, prediction_text, prediction_proba):
+    if prediction == 0:
+        st.write("## :green[Скоринг]")
+    else:
+        st.write("## :red[Скоринг]")
 
-    st.write("## Вероятность невозврата")
-    st.write(prediction_proba)
+    col1, col2, col3 = st.columns((3, 1, 7))
 
+    pay_proba = round(prediction_proba * 100)
+    not_pay_proba = pay_proba - 100
+
+    if prediction == 0:
+        proba_text = 'вероятность невозврата: :green[**' + str(pay_proba) + '%**]'
+        progress_text = '' + prediction_text + ''
+    else:
+        proba_text = 'вероятность невозврата: :red[**' + str(pay_proba) + '%**]'
+        progress_text = '' + prediction_text + ''
+    
+    col1.progress(pay_proba, text=progress_text)
+    col3.write(proba_text)
 
 def preprocess_data(df: pd.DataFrame, test=True):
     # features values limitation
@@ -67,21 +80,16 @@ def preprocess_data(df: pd.DataFrame, test=True):
     for col in limits:
         df.loc[df[col] > limits[col], col] = limits[col]
 
-    # GroupAge encoding
-#    for age_index in age_group:
-#        if df['GroupAge'][:1] == age_index:
-#            df = pd.concat([df, pd.DataFrame([1], coumns=['GroupAge_' + age_index])], axis=1)
-#        else:
-#            df = pd.concat([df, pd.DataFrame([0], coumns=['GroupAge_' + age_index])], axis=1)
-
-    df['GroupAge_b'] = 0
-    df['GroupAge_c'] = 0
-    df['GroupAge_d'] = 0
-    df['GroupAge_e'] = 1
+    for key in age_group:
+        age_index = age_group[key]
+        if df['GroupAge'].iloc[0] == age_index:
+            df = pd.concat([df, pd.DataFrame([1], columns=['GroupAge_' + age_index])], axis=1)
+        else:
+            df = pd.concat([df, pd.DataFrame([0], columns=['GroupAge_' + age_index])], axis=1)
 
     df.drop('GroupAge', axis=1, inplace=True)
 
-    path = "data/model/scaler.sav"
+    path = MODEL_PATH + "scaler.sav"
     with open(path, "rb") as file:
         scaler = load(file)
 
@@ -90,32 +98,15 @@ def preprocess_data(df: pd.DataFrame, test=True):
     return df
 
 
-def load_model_and_predict(df, path="data/model/clf_rfc.sav"):
+def load_model_and_predict(df, path=MODEL_PATH + "clf.sav"):
     with open(path, "rb") as file:
         model = load(file)
 
     prediction = model.predict(df)[0]
 
-    prediction_proba = model.predict_proba(df)[0]
+    prediction_proba = float(model.predict_proba(df)[0][1])
 
-    encode_prediction_proba = {
-        0: "Вероятность неплатежа",
-        1: "Вероятность неплатежа"
-    }
-
-    encode_prediction = {
-        0: "Платежи будут осуществляться вовремя",
-        1: "Ожидается просрочка платежа"
-    }
-
-    prediction_data = {}
-    for key, value in encode_prediction_proba.items():
-        prediction_data.update({value: prediction_proba[key]})
-
-    prediction_df = pd.DataFrame(prediction_data, index=[0])
-    prediction = encode_prediction[prediction]
-
-    return prediction, prediction_df
+    return prediction, prediction_proba
 
 
 def process_side_bar_inputs():
@@ -128,8 +119,16 @@ def process_side_bar_inputs():
 
     user_X_df = preprocessed_X_df[:1]
 
-    prediction, prediction_probas = load_model_and_predict(user_X_df)
-    write_prediction(prediction, prediction_probas)
+    prediction, prediction_proba = load_model_and_predict(user_X_df)
+
+    encode_prediction = {
+        0: "Платежи будут осуществляться вовремя",
+        1: "Ожидается просрочка платежа"
+    }
+
+    prediction_text = encode_prediction[prediction]
+
+    write_prediction(prediction, prediction_text, prediction_proba)
 
 
 def sidebar_input_features():
