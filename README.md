@@ -49,5 +49,5 @@ $ streamlit run app.py
 В настроках приложения можно указать язык интерфейса (по умолчанию - английский)
 
 ```python
-`INTERFACE_LANG` = 'eng'
+INTERFACE_LANG = 'eng'
 ```
