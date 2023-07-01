@@ -144,10 +144,9 @@ def show_main_page():
         page_icon=icon_image
     )
 
-    col1, col2, col3 = st.columns((1, 6, 1))
+    col1, col2, col3 = st.columns((1, 6))
     col1.image(logo_image, width=120)
     col2.title(interface_dict['app_title'][interface_lang])
-    col3.text(interface_lang)
 
     st.text(interface_dict['app_slogan'][interface_lang])
 
