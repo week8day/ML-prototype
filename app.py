@@ -11,7 +11,7 @@ INTERFACE_LANG = 'eng'
 interface_lang = INTERFACE_LANG
 interface_dict = {
     'app_title': {
-        'eng': "Credit score",
+        'eng': "Credit Score",
         'rus': "Кредитный скоринг"
     },
     'app_slogan': {
@@ -19,7 +19,7 @@ interface_dict = {
         'rus': "Прогнозирование просрочки платежей по кредитам"
     },
     'form_title': {
-        'eng': "Client data",
+        'eng': "Client Data",
         'rus': "Параметры клиента"
     },
     'probability': {
