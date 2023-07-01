@@ -15,7 +15,7 @@ interface_dict = {
         'rus': "Кредитный скоринг"
     },
     'app_slogan': {
-        'eng': "Predicting delinquency on loans",
+        'eng': "Loan Delinquency Prediction",
         'rus': "Прогнозирование просрочки платежей по кредитам"
     },
     'form_title': {
