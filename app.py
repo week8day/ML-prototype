@@ -5,7 +5,7 @@ from pickle import load
 
 IMAGE_PATH = 'data/images/'
 MODEL_PATH = 'data/model/'
-INTERFACE_LANG = 'eng'
+INTERFACE_LANG = 'rus'
 
 # interface lang
 interface_lang = INTERFACE_LANG
